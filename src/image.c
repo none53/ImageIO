@@ -12,8 +12,8 @@
  */
 
 #pragma warning(disable : 4996)
-#pragma warning(disable : 4018) // signed and unsigned
-#pragma warning(disable : 4244) // uint16_t => uint8_t
+ //#pragma warning(disable : 4018) // signed and unsigned
+ //#pragma warning(disable : 4244) // uint16_t => uint8_t
 
 #include <string.h>
 #include <stdlib.h>
@@ -28,19 +28,19 @@
  * @param[in] img  ダンプする画像
  */
 void dump_image_info(image_t *img) {
-  fprintf(stderr, "width:  %u\n", img->width);
-  fprintf(stderr, "height: %u\n", img->height);
-  fprintf(stderr, "type:   %d\n", img->color_type);
-  fprintf(stderr, "pnum:   %d\n", img->palette_num);
-  fprintf(stderr, "palette:%p\n", img->palette);
+    fprintf(stderr, "width:  %u\n", img->width);
+    fprintf(stderr, "height: %u\n", img->height);
+    fprintf(stderr, "type:   %d\n", img->color_type);
+    fprintf(stderr, "pnum:   %d\n", img->palette_num);
+    fprintf(stderr, "palette:%p\n", img->palette);
 #if 0
-  if (img->palette_num != 0) {
-    int i;
-    for (i = 0; i < img->palette_num; i++) {
-      color_t *p = &img->palette[i];
-      fprintf(stderr, "%3d: r:%02X g:%02X b:%02X\n", i, p->r, p->g, p->b);
+    if (img->palette_num != 0) {
+        int i;
+        for (i = 0; i < img->palette_num; i++) {
+            color_t *p = &img->palette[i];
+            fprintf(stderr, "%3d: r:%02X g:%02X b:%02X\n", i, p->r, p->g, p->b);
+        }
     }
-  }
 #endif
 }
 
@@ -53,34 +53,35 @@ void dump_image_info(image_t *img) {
  * @return 初期化済みimage_t型構造体
  */
 image_t *allocate_image(uint32_t width, uint32_t height, uint8_t type) {
-  uint32_t i;
-  image_t *img;
-  if ((img = calloc(1, sizeof(image_t))) == NULL) {
+    uint32_t i;
+    image_t *img;
+    if ((img = calloc(1, sizeof(image_t))) == NULL) {
+        return NULL;
+    }
+    img->width = width;
+    img->height = height;
+    img->color_type = type;
+    if (type == COLOR_TYPE_INDEX) {
+        if ((img->palette = calloc(256, sizeof(color_t))) == NULL) {
+            goto error;
+        }
+    }
+    else {
+        img->palette = NULL;
+    }
+    img->palette_num = 0;
+    if ((img->map = calloc(height, sizeof(pixcel_t*))) == NULL) {
+        goto error;
+    }
+    for (i = 0; i < height; i++) {
+        if ((img->map[i] = calloc(width, sizeof(pixcel_t))) == NULL) {
+            goto error;
+        }
+    }
+    return img;
+error:
+    free_image(img);
     return NULL;
-  }
-  img->width = width;
-  img->height = height;
-  img->color_type = type;
-  if (type == COLOR_TYPE_INDEX) {
-    if ((img->palette = calloc(256, sizeof(color_t))) == NULL) {
-      goto error;
-    }
-  } else {
-    img->palette = NULL;
-  }
-  img->palette_num = 0;
-  if ((img->map = calloc(height, sizeof(pixcel_t*))) == NULL) {
-    goto error;
-  }
-  for (i = 0; i < height; i++) {
-    if ((img->map[i] = calloc(width, sizeof(pixcel_t))) == NULL) {
-      goto error;
-    }
-  }
-  return img;
-  error:
-  free_image(img);
-  return NULL;
 }
 
 /**
@@ -94,19 +95,19 @@ image_t *allocate_image(uint32_t width, uint32_t height, uint8_t type) {
  * @return クローンされたimage_t型構造体
  */
 image_t *clone_image(image_t *img) {
-  uint32_t i;
-  image_t *new_img = allocate_image(img->width, img->height, img->color_type);
-  if (new_img == NULL) {
-    return NULL;
-  }
-  new_img->palette_num = img->palette_num;
-  if (img->color_type == COLOR_TYPE_INDEX) {
-    memcpy(new_img->palette, img->palette, sizeof(color_t) * img->palette_num);
-  }
-  for (i = 0; i < img->height; i++) {
-    memcpy(new_img->map[i], img->map[i], sizeof(pixcel_t) * img->width);
-  }
-  return new_img;
+    uint32_t i;
+    image_t *new_img = allocate_image(img->width, img->height, (uint8_t)img->color_type);
+    if (new_img == NULL) {
+        return NULL;
+    }
+    new_img->palette_num = img->palette_num;
+    if (img->color_type == COLOR_TYPE_INDEX) {
+        memcpy(new_img->palette, img->palette, sizeof(color_t) * img->palette_num);
+    }
+    for (i = 0; i < img->height; i++) {
+        memcpy(new_img->map[i], img->map[i], sizeof(pixcel_t) * img->width);
+    }
+    return new_img;
 }
 
 /**
@@ -119,18 +120,18 @@ image_t *clone_image(image_t *img) {
  * @param[in,out] img 開放するimage_t型構造体
  */
 void free_image(image_t *img) {
-  uint32_t i;
-  if (img == NULL) {
-    return;
-  }
-  if (img->palette != NULL) {
-    free(img->palette);
-  }
-  for (i = 0; i < img->height; i++) {
-    free(img->map[i]);
-  }
-  free(img->map);
-  free(img);
+    uint32_t i;
+    if (img == NULL) {
+        return;
+    }
+    if (img->palette != NULL) {
+        free(img->palette);
+    }
+    for (i = 0; i < img->height; i++) {
+        free(img->map[i]);
+    }
+    free(img->map);
+    free(img);
 }
 
 /**
@@ -144,12 +145,12 @@ void free_image(image_t *img) {
  * @return color_t
  */
 color_t color_from_rgb(uint8_t r, uint8_t g, uint8_t b) {
-  color_t c;
-  c.r = r;
-  c.g = g;
-  c.b = b;
-  c.a = 0xff;
-  return c;
+    color_t c;
+    c.r = r;
+    c.g = g;
+    c.b = b;
+    c.a = 0xff;
+    return c;
 }
 
 /**
@@ -162,12 +163,12 @@ color_t color_from_rgb(uint8_t r, uint8_t g, uint8_t b) {
  * @return color_t
  */
 color_t color_from_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-  color_t c;
-  c.r = r;
-  c.g = g;
-  c.b = b;
-  c.a = a;
-  return c;
+    color_t c;
+    c.r = r;
+    c.g = g;
+    c.b = b;
+    c.a = a;
+    return c;
 }
 
 /**
@@ -184,21 +185,21 @@ color_t color_from_rgba(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_to_index(image_t *img) {
-  switch (img->color_type) {
+    switch (img->color_type) {
     case COLOR_TYPE_INDEX:
-      break;
+        break;
     case COLOR_TYPE_GRAY:
-      img = image_gray_to_index(img);
-      break;
+        img = image_gray_to_index(img);
+        break;
     case COLOR_TYPE_RGB:
-      img = image_rgb_to_index(img);
-      break;
+        img = image_rgb_to_index(img);
+        break;
     case COLOR_TYPE_RGBA:
-      img = image_rgba_to_rgb(img, color_from_rgb(255, 255, 255));
-      img = image_rgb_to_index(img);
-      break;
-  }
-  return img;
+        img = image_rgba_to_rgb(img, color_from_rgb(255, 255, 255));
+        img = image_rgb_to_index(img);
+        break;
+    }
+    return img;
 }
 
 /**
@@ -218,22 +219,22 @@ image_t *image_to_index(image_t *img) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_to_gray(image_t *img) {
-  switch (img->color_type) {
+    switch (img->color_type) {
     case COLOR_TYPE_INDEX:
-      img = image_index_to_rgb(img);
-      img = image_rgb_to_gray(img);
-      break;
+        img = image_index_to_rgb(img);
+        img = image_rgb_to_gray(img);
+        break;
     case COLOR_TYPE_GRAY:
-      break;
+        break;
     case COLOR_TYPE_RGB:
-      img = image_rgb_to_gray(img);
-      break;
+        img = image_rgb_to_gray(img);
+        break;
     case COLOR_TYPE_RGBA:
-      img = image_rgba_to_rgb(img, color_from_rgb(255, 255, 255));
-      img = image_rgb_to_gray(img);
-      break;
-  }
-  return img;
+        img = image_rgba_to_rgb(img, color_from_rgb(255, 255, 255));
+        img = image_rgb_to_gray(img);
+        break;
+    }
+    return img;
 }
 
 /**
@@ -253,20 +254,20 @@ image_t *image_to_gray(image_t *img) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_to_rgb(image_t *img) {
-  switch (img->color_type) {
+    switch (img->color_type) {
     case COLOR_TYPE_INDEX:
-      img = image_index_to_rgb(img);
-      break;
+        img = image_index_to_rgb(img);
+        break;
     case COLOR_TYPE_GRAY:
-      img = image_gray_to_rgb(img);
-      break;
+        img = image_gray_to_rgb(img);
+        break;
     case COLOR_TYPE_RGB:
-      break;
+        break;
     case COLOR_TYPE_RGBA:
-      img = image_rgba_to_rgb(img, color_from_rgb(255, 255, 255));
-      break;
-  }
-  return img;
+        img = image_rgba_to_rgb(img, color_from_rgb(255, 255, 255));
+        break;
+    }
+    return img;
 }
 
 /**
@@ -284,22 +285,22 @@ image_t *image_to_rgb(image_t *img) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_to_rgba(image_t *img) {
-  switch (img->color_type) {
+    switch (img->color_type) {
     case COLOR_TYPE_INDEX:
-      img = image_index_to_rgb(img);
-      img->color_type = COLOR_TYPE_RGBA;
-      break;
+        img = image_index_to_rgb(img);
+        img->color_type = COLOR_TYPE_RGBA;
+        break;
     case COLOR_TYPE_GRAY:
-      img = image_gray_to_rgb(img);
-      img->color_type = COLOR_TYPE_RGBA;
-      break;
+        img = image_gray_to_rgb(img);
+        img->color_type = COLOR_TYPE_RGBA;
+        break;
     case COLOR_TYPE_RGB:
-      img->color_type = COLOR_TYPE_RGBA;
-      break;
+        img->color_type = COLOR_TYPE_RGBA;
+        break;
     case COLOR_TYPE_RGBA:
-      break;
-  }
-  return img;
+        break;
+    }
+    return img;
 }
 
 /**
@@ -314,27 +315,27 @@ image_t *image_to_rgba(image_t *img) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_index_to_rgb(image_t *img) {
-  uint32_t x, y;
-  if (img == NULL) {
-    return NULL;
-  }
-  if (img->color_type != COLOR_TYPE_INDEX) {
-    return NULL;
-  }
-  for (y = 0; y < img->height; y++) {
-    for (x = 0; x < img->width; x++) {
-      pixcel_t *p = &img->map[y][x];
-      if (p->i >= img->palette_num) {
+    uint32_t x, y;
+    if (img == NULL) {
         return NULL;
-      }
-      p->c = img->palette[p->i];
     }
-  }
-  img->color_type = COLOR_TYPE_RGB;
-  free(img->palette);
-  img->palette = NULL;
-  img->palette_num = 0;
-  return img;
+    if (img->color_type != COLOR_TYPE_INDEX) {
+        return NULL;
+    }
+    for (y = 0; y < img->height; y++) {
+        for (x = 0; x < img->width; x++) {
+            pixcel_t *p = &img->map[y][x];
+            if (p->i >= img->palette_num) {
+                return NULL;
+            }
+            p->c = img->palette[p->i];
+        }
+    }
+    img->color_type = COLOR_TYPE_RGB;
+    free(img->palette);
+    img->palette = NULL;
+    img->palette_num = 0;
+    return img;
 }
 
 /**
@@ -352,57 +353,57 @@ image_t *image_index_to_rgb(image_t *img) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_rgb_to_index(image_t *img) {
-  uint32_t i, x, y;
-  int num = 0;
-  color_t *palette;
-  if (img == NULL) {
-    return NULL;
-  }
-  if (img->color_type != COLOR_TYPE_RGB) {
-    return NULL;
-  }
-  // 色数をカウントするとともにカラーパレットを作成
-  palette = calloc(256, sizeof(color_t));
-  for (y = 0; y < img->height; y++) {
-    for (x = 0; x < img->width; x++) {
-      color_t *c = &img->map[y][x].c;
-      for (i = 0; i < num; i++) {
-        if (memcmp(c, &palette[i], sizeof(color_t)) == 0) {
-          break;
-        }
-      }
-      if (i == num) {
-        // パレットにない色
-        if (num == 256) {
-          // 色数が256色以上あるとパレット形式にはできない
-          free(palette);
-          return NULL;
-        }
-        // パレットに追加
-        palette[i] = *c;
-        num++;
-      }
+    uint32_t i, x, y;
+    uint16_t num = 0;
+    color_t *palette;
+    if (img == NULL) {
+        return NULL;
     }
-  }
-  // カラーパレットが作成できたので、
-  // 各ピクセルをカラーパレットのインデックスに置換
-  for (y = 0; y < img->height; y++) {
-    for (x = 0; x < img->width; x++) {
-      pixcel_t *p = &img->map[y][x];
-      color_t *c = &p->c;
-      for (i = 0; i < num; i++) {
-        if (memcmp(c, &palette[i], sizeof(color_t)) == 0) {
-          break;
-        }
-      }
-      memset(p, 0, sizeof(pixcel_t));
-      p->i = i;
+    if (img->color_type != COLOR_TYPE_RGB) {
+        return NULL;
     }
-  }
-  img->color_type = COLOR_TYPE_INDEX;
-  img->palette_num = num;
-  img->palette = palette;
-  return img;
+    // 色数をカウントするとともにカラーパレットを作成
+    palette = calloc(256, sizeof(color_t));
+    for (y = 0; y < img->height; y++) {
+        for (x = 0; x < img->width; x++) {
+            color_t *c = &img->map[y][x].c;
+            for (i = 0; i < num; i++) {
+                if (memcmp(c, &palette[i], sizeof(color_t)) == 0) {
+                    break;
+                }
+            }
+            if (i == num) {
+                // パレットにない色
+                if (num == 256) {
+                    // 色数が256色以上あるとパレット形式にはできない
+                    free(palette);
+                    return NULL;
+                }
+                // パレットに追加
+                palette[i] = *c;
+                num++;
+            }
+        }
+    }
+    // カラーパレットが作成できたので、
+    // 各ピクセルをカラーパレットのインデックスに置換
+    for (y = 0; y < img->height; y++) {
+        for (x = 0; x < img->width; x++) {
+            pixcel_t *p = &img->map[y][x];
+            color_t *c = &p->c;
+            for (i = 0; i < num; i++) {
+                if (memcmp(c, &palette[i], sizeof(color_t)) == 0) {
+                    break;
+                }
+            }
+            memset(p, 0, sizeof(pixcel_t));
+            p->i = (uint8_t)i;
+        }
+    }
+    img->color_type = COLOR_TYPE_INDEX;
+    img->palette_num = num;
+    img->palette = palette;
+    return img;
 }
 
 /**
@@ -417,36 +418,36 @@ image_t *image_rgb_to_index(image_t *img) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_gray_to_index(image_t *img) {
-  uint32_t i, x, y;
-  color_t *palette;
-  if (img == NULL) {
-    return NULL;
-  }
-  if (img->color_type != COLOR_TYPE_GRAY) {
-    return NULL;
-  }
-  // グレイスケールの値がそのままインデックス値になるようにカラーパレットを作成
-  palette = calloc(256, sizeof(color_t));
-  for (i = 0; i < 256; i++) {
-    palette[i].r = i;
-    palette[i].g = i;
-    palette[i].b = i;
-    palette[i].a = 0xff;
-  }
-  // カラーパレットが作成できたので、
-  // 各ピクセルをカラーパレットのインデックスに置換
-  for (y = 0; y < img->height; y++) {
-    for (x = 0; x < img->width; x++) {
-      pixcel_t *p = &img->map[y][x];
-      uint8_t g = p->g;
-      memset(p, 0, sizeof(pixcel_t));
-      p->i = g;
+    uint32_t i, x, y;
+    color_t *palette;
+    if (img == NULL) {
+        return NULL;
     }
-  }
-  img->color_type = COLOR_TYPE_INDEX;
-  img->palette_num = 256;
-  img->palette = palette;
-  return img;
+    if (img->color_type != COLOR_TYPE_GRAY) {
+        return NULL;
+    }
+    // グレイスケールの値がそのままインデックス値になるようにカラーパレットを作成
+    palette = calloc(256, sizeof(color_t));
+    for (i = 0; i < 256; i++) {
+        palette[i].r = (uint8_t)i;
+        palette[i].g = (uint8_t)i;
+        palette[i].b = (uint8_t)i;
+        palette[i].a = (uint8_t)0xff;
+    }
+    // カラーパレットが作成できたので、
+    // 各ピクセルをカラーパレットのインデックスに置換
+    for (y = 0; y < img->height; y++) {
+        for (x = 0; x < img->width; x++) {
+            pixcel_t *p = &img->map[y][x];
+            uint8_t g = p->g;
+            memset(p, 0, sizeof(pixcel_t));
+            p->i = g;
+        }
+    }
+    img->color_type = COLOR_TYPE_INDEX;
+    img->palette_num = 256;
+    img->palette = palette;
+    return img;
 }
 
 /**
@@ -465,25 +466,25 @@ image_t *image_gray_to_index(image_t *img) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_rgba_to_rgb(image_t *img, color_t bg) {
-  uint32_t x, y;
-  if (img == NULL) {
-    return NULL;
-  }
-  if (img->color_type != COLOR_TYPE_RGBA) {
-    return NULL;
-  }
-  for (y = 0; y < img->height; y++) {
-    for (x = 0; x < img->width; x++) {
-      pixcel_t *p = &img->map[y][x];
-      const uint8_t a = p->c.a;
-      p->c.r = (p->c.r * a + bg.r * (0xff - a) + 0x7f) / 0xff;
-      p->c.g = (p->c.g * a + bg.g * (0xff - a) + 0x7f) / 0xff;
-      p->c.b = (p->c.b * a + bg.b * (0xff - a) + 0x7f) / 0xff;
-      p->c.a = 0xff;
+    uint32_t x, y;
+    if (img == NULL) {
+        return NULL;
     }
-  }
-  img->color_type = COLOR_TYPE_RGB;
-  return img;
+    if (img->color_type != COLOR_TYPE_RGBA) {
+        return NULL;
+    }
+    for (y = 0; y < img->height; y++) {
+        for (x = 0; x < img->width; x++) {
+            pixcel_t *p = &img->map[y][x];
+            const uint8_t a = p->c.a;
+            p->c.r = (p->c.r * a + bg.r * (0xff - a) + 0x7f) / 0xff;
+            p->c.g = (p->c.g * a + bg.g * (0xff - a) + 0x7f) / 0xff;
+            p->c.b = (p->c.b * a + bg.b * (0xff - a) + 0x7f) / 0xff;
+            p->c.a = 0xff;
+        }
+    }
+    img->color_type = COLOR_TYPE_RGB;
+    return img;
 }
 
 /**
@@ -503,20 +504,20 @@ image_t *image_rgba_to_rgb(image_t *img, color_t bg) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_rgba_to_rgb_ignore_alpha(image_t *img) {
-  uint32_t x, y;
-  if (img == NULL) {
-    return NULL;
-  }
-  if (img->color_type != COLOR_TYPE_RGBA) {
-    return NULL;
-  }
-  for (y = 0; y < img->height; y++) {
-    for (x = 0; x < img->width; x++) {
-      img->map[y][x].c.a = 0xff;
+    uint32_t x, y;
+    if (img == NULL) {
+        return NULL;
     }
-  }
-  img->color_type = COLOR_TYPE_RGB;
-  return img;
+    if (img->color_type != COLOR_TYPE_RGBA) {
+        return NULL;
+    }
+    for (y = 0; y < img->height; y++) {
+        for (x = 0; x < img->width; x++) {
+            img->map[y][x].c.a = 0xff;
+        }
+    }
+    img->color_type = COLOR_TYPE_RGB;
+    return img;
 }
 
 /**
@@ -531,25 +532,25 @@ image_t *image_rgba_to_rgb_ignore_alpha(image_t *img) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_gray_to_rgb(image_t *img) {
-  uint32_t x, y;
-  if (img == NULL) {
-    return NULL;
-  }
-  if (img->color_type != COLOR_TYPE_GRAY) {
-    return NULL;
-  }
-  for (y = 0; y < img->height; y++) {
-    for (x = 0; x < img->width; x++) {
-      pixcel_t *p = &img->map[y][x];
-      const uint8_t g = p->g;
-      p->c.r = g;
-      p->c.g = g;
-      p->c.b = g;
-      p->c.a = 0xff;
+    uint32_t x, y;
+    if (img == NULL) {
+        return NULL;
     }
-  }
-  img->color_type = COLOR_TYPE_RGB;
-  return img;
+    if (img->color_type != COLOR_TYPE_GRAY) {
+        return NULL;
+    }
+    for (y = 0; y < img->height; y++) {
+        for (x = 0; x < img->width; x++) {
+            pixcel_t *p = &img->map[y][x];
+            const uint8_t g = p->g;
+            p->c.r = g;
+            p->c.g = g;
+            p->c.b = g;
+            p->c.a = 0xff;
+        }
+    }
+    img->color_type = COLOR_TYPE_RGB;
+    return img;
 }
 
 /**
@@ -564,27 +565,27 @@ image_t *image_gray_to_rgb(image_t *img) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_rgb_to_gray(image_t *img) {
-  uint32_t x, y;
-  if (img == NULL) {
-    return NULL;
-  }
-  if (img->color_type != COLOR_TYPE_RGB) {
-    return NULL;
-  }
-  for (y = 0; y < img->height; y++) {
-    for (x = 0; x < img->width; x++) {
-      pixcel_t *p = &img->map[y][x];
-      const uint8_t r = p->c.r;
-      const uint8_t g = p->c.g;
-      const uint8_t b = p->c.b;
-      // ITU-R BT.601規定の輝度計算で変換する
-      const uint8_t gray = (uint8_t) (0.299f * r + 0.587f * g + 0.114f * b + 0.5f);
-      memset(p, 0, sizeof(pixcel_t));
-      p->g = gray;
+    uint32_t x, y;
+    if (img == NULL) {
+        return NULL;
     }
-  }
-  img->color_type = COLOR_TYPE_GRAY;
-  return img;
+    if (img->color_type != COLOR_TYPE_RGB) {
+        return NULL;
+    }
+    for (y = 0; y < img->height; y++) {
+        for (x = 0; x < img->width; x++) {
+            pixcel_t *p = &img->map[y][x];
+            const uint8_t r = p->c.r;
+            const uint8_t g = p->c.g;
+            const uint8_t b = p->c.b;
+            // ITU-R BT.601規定の輝度計算で変換する
+            const uint8_t gray = (uint8_t)(0.299f * r + 0.587f * g + 0.114f * b + 0.5f);
+            memset(p, 0, sizeof(pixcel_t));
+            p->g = gray;
+        }
+    }
+    img->color_type = COLOR_TYPE_GRAY;
+    return img;
 }
 
 /**
@@ -601,23 +602,23 @@ image_t *image_rgb_to_gray(image_t *img) {
  * @return 変換に成功した場合、引数に指定されたポインタ、失敗した場合NULLが返る。
  */
 image_t *image_gray_to_binary(image_t *img) {
-  uint32_t x, y;
-  if (img == NULL) {
-    return NULL;
-  }
-  if (img->color_type != COLOR_TYPE_GRAY) {
-    return NULL;
-  }
-  img->palette_num = 2;
-  img->palette = calloc(256, sizeof(color_t));
-  img->palette[0] = color_from_rgb(255, 255, 255);
-  img->palette[1] = color_from_rgb(0, 0, 0);
-  for (y = 0; y < img->height; y++) {
-    for (x = 0; x < img->width; x++) {
-      pixcel_t *p = &img->map[y][x];
-      p->i = (p->g < 128 ? 1 : 0);
+    uint32_t x, y;
+    if (img == NULL) {
+        return NULL;
     }
-  }
-  img->color_type = COLOR_TYPE_INDEX;
-  return img;
+    if (img->color_type != COLOR_TYPE_GRAY) {
+        return NULL;
+    }
+    img->palette_num = 2;
+    img->palette = calloc(256, sizeof(color_t));
+    img->palette[0] = color_from_rgb(255, 255, 255);
+    img->palette[1] = color_from_rgb(0, 0, 0);
+    for (y = 0; y < img->height; y++) {
+        for (x = 0; x < img->width; x++) {
+            pixcel_t *p = &img->map[y][x];
+            p->i = (p->g < 128 ? 1 : 0);
+        }
+    }
+    img->color_type = COLOR_TYPE_INDEX;
+    return img;
 }
