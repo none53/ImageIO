@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file def.h
  *
  * Copyright (c) 2015 大前良介 (OHMAE Ryosuke)

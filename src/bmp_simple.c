@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file bmp_simple.c
  *
  * Copyright (c) 2015 大前良介 (OHMAE Ryosuke)
