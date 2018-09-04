@@ -10,6 +10,11 @@
  * @author <a href="mailto:ryo@mm2d.net">大前良介 (OHMAE Ryosuke)</a>
  * @date 2015/02/07
  */
+
+#pragma warning(disable : 4996)
+#pragma warning(disable : 4018) // signed and unsigned
+#pragma warning(disable : 4244) // uint16_t => uint8_t
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>

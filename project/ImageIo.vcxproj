@@ -76,6 +76,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libpng\src\lpng1635\lpng1635;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -115,13 +116,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\bmp.c" />
-    <ClCompile Include="..\bmp_simple.c" />
-    <ClCompile Include="..\image.c" />
-    <ClCompile Include="..\jpeg.c" />
-    <ClCompile Include="..\main.c" />
-    <ClCompile Include="..\png.c" />
-    <ClCompile Include="..\pnm.c" />
+    <ClCompile Include="..\src\bmp.c" />
+    <ClCompile Include="..\src\image.c" />
+    <ClCompile Include="..\src\png.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\libpng\src\lpng1635\lpng1635\projects\vstudio\libpng\libpng.vcxproj">
+      <Project>{d6973076-9317-4ef2-a0b8-b7a18ac0713e}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
